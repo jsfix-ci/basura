@@ -1,0 +1,12 @@
+.DS_Store
+.editorconfig
+.eslintrc.js
+.jsdoc.conf
+.nyc_output/
+.vscode/
+coverage/
+data/*.csv
+docs/
+node_modules/
+test/
+tools/

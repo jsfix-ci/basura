@@ -1,0 +1,6 @@
+.DS_Store
+.nyc_output/
+.vscode/
+*.js.map
+coverage/
+node_modules/
