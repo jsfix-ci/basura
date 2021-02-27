@@ -26,14 +26,15 @@ let categoryShift = 0
 let invalid = 0
 
 for (const codePoint of codePoints) {
-  if (codePoint != null) {
+  if ((codePoint != null) && (codePoint.script != null)) {
     if (categories[codePoint.category] == null) {
       categories[codePoint.category] = categoryCount++
     }
     if (scripts[codePoint.script] == null) {
       scripts[codePoint.script] = {
         num: scriptCount++,
-        first: codePoint.code
+        first: codePoint.code,
+        count: 0
       }
     }
     scripts[codePoint.script].last = codePoint.code
@@ -87,6 +88,9 @@ function idna() {
               // )
               continue
             }
+            // version mismatch between codepoints database and IANA table
+            // means some scripts won't have any characters
+            scripts[cp.script].count++
             trie.set(i,
               properties[Property] |
               (scripts[cp.script].num << scriptShift) |
@@ -107,7 +111,9 @@ async function main() {
 
   const scriptA = []
   for (const [k, v] of Object.entries(scripts)) {
-    scriptA.push([k, v.first, v.last])
+    if (v.count > 0) {
+      scriptA.push([k, v.num, v.first, v.last])
+    }
   }
   const data = {
     scripts: scriptA,

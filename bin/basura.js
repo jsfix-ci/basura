@@ -20,22 +20,23 @@ const opts = commander.program
   .usage('[options]')
   .description('Generate a random JavaScript object')
   .option(
-    '-a, --arraylen <number>', 'Maximum array/object size', myParseInt, 10
+    '-a, --arrayLength <number>', 'Maximum array/object size', myParseInt, 10
   )
-  .option('-A, --any', 'Generate any type rather than always being an object')
   .option('-c, --cborSafe', 'Do not generate types that break CBOR')
   .option('-d, --depth <number>', 'Maximum depth', myParseInt, 5)
   .option('-j, --json', 'Output JSON')
   .option('-o, --output <file>', 'File to output')
-  .option('-s, --strlen <number>', 'Maximum string length', myParseInt, 20)
+  .option(
+    '-s, --stringLength <number>', 'Maximum string length', myParseInt, 20
+  )
   .option('-t, --type <type>', 'Generate this specific type')
+  .option('-T, --listTypes', 'List all supported types, then exit')
+  .addHelpText('after', `
+Examples:
+  $ basura -t object
+  $ basura -t Array -o array.js`)
   .parse(process.argv)
   .opts()
-
-if (opts.type && opts.any) {
-  console.error('--type and --any are mutually exclusive')
-  process.exit(1)
-}
 
 if (opts.json) {
   opts.jsonSafe = true
@@ -45,15 +46,17 @@ function main() {
   const g = new Basura(opts)
 
   let obj = null
+  if (opts.listTypes) {
+    console.log(g.typeNames.join('\n'))
+    return
+  }
+
   if (opts.type) {
     const t = opts.type
     delete opts.type
     obj = g[`generate_${t}`].call(g)
-  } else if (opts.any) {
-    delete opts.any
-    obj = g.generate()
   } else {
-    obj = g.generate_object()
+    obj = g.generate()
   }
 
   let str = opts.json ?
@@ -69,8 +72,8 @@ function main() {
     }
     if (!opts.json) {
       out.write(`\
-  'use strict'
-  module.exports = `)
+'use strict'
+module.exports = `)
       str = Basura.quoteSymbols(str)
     }
   }
@@ -78,4 +81,4 @@ function main() {
   out.write('\n')
 }
 
-main()//.catch(console.error)
+main()

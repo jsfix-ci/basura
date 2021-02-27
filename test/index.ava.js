@@ -2,6 +2,8 @@
 
 const test = require('ava')
 const Basura = require('../lib/index')
+const util = require('util')
+const Module = require('module')
 
 const example = require('./fixtures/example.js')
 const Arusab = require('./fixtures/un.js')
@@ -31,17 +33,37 @@ test('constructor edges', t => {
 
 test('playback', t => {
   const un = new Arusab({
-    arraylen: 100
+    arrayLength: 1000
   })
   un.generate(example)
 
-  const g = new Basura({
+  let g = new Basura({
     randBytes: un.playback.bind(un),
-    arraylen: 100
+    arrayLength: 1000
   })
 
-  const o = g.generate()
+  let o = g.generate()
   t.deepEqual(o, example)
+
+  // with output
+  un.generate(example)
+
+  g = new Basura({
+    randBytes: un.playback.bind(un),
+    output: true,
+    arrayLength: 1000
+  })
+
+  o = g.generate()
+  const insp = Basura.quoteSymbols(
+    util.inspect(o, {colors: false, depth: Infinity})
+  )
+  const str = `\
+'use strict'
+module.exports = ${insp}\n`
+  const m = new Module()
+  m._compile(str, 'memory')
+  t.deepEqual(m.exports, example)
 })
 
 test('depth', t => {
@@ -50,9 +72,182 @@ test('depth', t => {
   t.is(g.generate_Set(Infinity), null)
   t.is(g.generate_Map(Infinity), null)
   t.is(g.generate_object(Infinity), null)
+  t.is(g.generate_function(Infinity), null)
+  t.is(g.generate_Proxy(Infinity), null)
+  t.is(g.generate_TypedArray(Infinity).byteLength, 0)
+  t.is(typeof g.generate_bigint(), 'bigint')
+  t.is(typeof g.generate_symbol(), 'symbol')
+  t.true(g.generate_TypedArray().byteLength >= 0)
+  t.is(typeof g.generate_object(), 'object')
+  t.is(g.generate_Map().constructor.name, 'Map')
+  t.is(g.generate_Set().constructor.name, 'Set')
+  t.true(util.types.isProxy(g.generate_Proxy()))
+  t.is(typeof g.generate_function(), 'function')
+  t.is(typeof g.generate_string(), 'string')
+  t.is(g.generate_String().constructor.name, 'String')
+  t.is(g.generate_RegExp().constructor.name, 'RegExp')
+  t.is(g.generate_URL().constructor.name, 'URL')
 })
 
-// test('string', t => {
-//   const g = new Basura()
-//   g.generate_string()
-// })
+test('cbor/json safe', t => {
+  let g = new Basura({
+    cborSafe: true
+  })
+  t.falsy(g.typeNames['Boolean'])
+  g = new Basura({
+    jsonSafe: true
+  })
+  t.falsy(g.typeNames['NaN'])
+})
+
+test('unspecified', t => {
+  const g = new Basura()
+  let buf = g._randBytes(5)
+  t.true(Buffer.isBuffer(buf))
+  t.is(buf.length, 5)
+  buf = g._randUInt32()
+  t.is(typeof buf, 'number')
+  buf = g._randUBigInt(8)
+  t.is(typeof buf, 'bigint')
+  buf = g._randUBigInt()
+  t.is(typeof buf, 'bigint')
+  buf = g._random01()
+  t.true((buf >= 0) || (buf < 1))
+  buf = g._randomGauss(0.5, 0.00001)
+  t.true((buf >= 0) && (buf < 1))
+  buf = g._upto(10)
+  t.true((buf >= 0) && (buf < 10) && (~~buf === buf))
+  buf = g._pick(['foo'])
+  t.is(buf, 'foo')
+  buf = g._some('a')
+  t.true((buf === '') || (buf === 'a'))
+  buf = g._some(['a'])
+  t.true(Array.isArray(buf) && (buf.length < 2))
+  buf = g.generate_NaN()
+  t.is(buf, NaN)
+  buf = g.generate_boolean()
+  t.is(typeof buf, 'boolean')
+  buf = g.generate_Boolean()
+  t.is(buf.constructor.name, 'Boolean')
+  buf = g.generate_integer()
+  t.is(typeof buf, 'number')
+  t.is(~~buf, buf)
+  buf = g.generate_number()
+  t.is(typeof buf, 'number')
+  buf = g.generate_Number()
+  t.is(buf.constructor.name, 'Number')
+  buf = g.generate_Infinity()
+  t.false(isFinite(buf))
+  buf = g.generate_Buffer()
+  t.true(Buffer.isBuffer(buf))
+  buf = g.generate_Buffer(Infinity)
+  t.is(buf.length, 0)
+})
+
+test('functions', t => {
+  const un = new Arusab({
+    arrayLength: 1000
+  })
+
+  // these are needed for the evals, which eslint can't see into.
+  // eslint-disable-next-line no-unused-vars, prefer-const
+  let f1 = null
+  // eslint-disable-next-line no-unused-vars, prefer-const
+  let f2 = null
+  // eslint-disable-next-line no-unused-vars, prefer-const
+  let f3 = null
+
+  const val = 'foo'
+  const funcs = [
+    // [Function (anonymous)]
+    () => 'foo',
+    // [Function: anonymous],
+    new Function(`return '${val}'`),
+    // [Function: f1]
+    // eslint-disable-next-line no-eval
+    eval(`f1 = function() { return '${val}' }`),
+    // [Function: f2]
+    // eslint-disable-next-line no-eval
+    eval(`(function f2() { return '${val}' })`),
+    // [AsyncFunction (anonymous)]
+    // eslint-disable-next-line no-eval
+    eval(`async() => '${val}'`),
+    // [AsyncFunction: anonymous]
+    // eslint-disable-next-line func-names, prefer-arrow-callback
+    new (Object.getPrototypeOf(async function() { })
+      .constructor)(`return '${val}'`),
+    // [AsyncFunction: f1]
+    // eslint-disable-next-line no-eval
+    eval(`f1 = async() => '${val}'`),
+    // [AsyncFunction: f2]
+    // eslint-disable-next-line no-eval
+    eval(`f2 = async function() { return '${val}' }`),
+    // [AsyncFunction: f3]
+    // eslint-disable-next-line no-eval
+    eval(`(async function f3() { return '${val}' })`),
+    // [GeneratorFunction (anonymous)]
+    // eslint-disable-next-line no-eval
+    eval(`(function*() { yield '${val}' })`),
+    // [GeneratorFunction: anonymous]
+    // eslint-disable-next-line func-names
+    new (Object.getPrototypeOf(function *() { })
+      .constructor)(`yield '${val}'`),
+    // [GeneratorFunction: f1]
+    // eslint-disable-next-line no-eval
+    eval(`f1 = function * () { yield '${val}' }`),
+    // case '[GeneratorFunction: f2]':
+    // eslint-disable-next-line no-eval
+    eval(`(function *f2() { yield '${val}' })`),
+    // [AsyncGeneratorFunction (anonymous)]
+    // eslint-disable-next-line no-eval
+    eval(`(async function*() { yield '${val}' })`),
+    // [AsyncGeneratorFunction: anonymous]
+    // eslint-disable-next-line func-names
+    new (Object.getPrototypeOf(async function *() { })
+      .constructor)(`yield '${val}'`),
+    // case '[AsyncGeneratorFunction: f1]':
+    // eslint-disable-next-line no-eval
+    eval(`f1 = async function * () { yield '${val}' }`),
+    // [AsyncGeneratorFunction: f2]
+    // eslint-disable-next-line no-eval
+    eval(`(async function *f2() { yield '${val}' })`)
+
+  ]
+
+  un.generate(funcs)
+  let g = new Basura({
+    arrayLength: 1000,
+    randBytes: un.playback.bind(un)
+  })
+  t.deepEqual(g.generate().map(f => f.toString()), funcs.map(f => f.toString()))
+
+  un.generate(funcs)
+  g = new Basura({
+    output: true,
+    arrayLength: 1000,
+    randBytes: un.playback.bind(un)
+  })
+
+  t.deepEqual(
+    g.generate().map(f => util.inspect(f, {colors: false, depth: Infinity})),
+    funcs.map(f => f.toString())
+  )
+})
+
+test('quote symbols', t => {
+  t.is(Basura.quoteSymbols('Symbol(foo)'), 'Symbol.for(\'foo\')')
+  t.is(Basura.quoteSymbols('Symbol())'), 'Symbol.for(\')\')')
+})
+
+test('date', t => {
+  // Punt on re-generating the same date every time.  Let's just try it out.
+  const g = new Basura()
+  t.is(g.generate_Date().constructor.name, 'Date')
+  t.is(g.generate_Date().constructor.name, 'Date')
+})
+
+test('inspect', t => {
+  const b = new Basura({ output: true })
+  const m = b.generate_Map()
+  t.truthy(util.inspect(m, {depth: null}))
+})

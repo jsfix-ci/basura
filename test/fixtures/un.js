@@ -3,6 +3,8 @@
 const Basura = require('../../lib/index')
 const Scripts = require('../../lib/scripts')
 const scripts = Scripts.instance()
+const tlds = require('tlds')
+const util = require('util')
 
 const INFINITIES = [-Infinity, Infinity]
 
@@ -25,6 +27,16 @@ class Arusab extends Basura {
     this._randBytes(b, `_randUInt32,${reason}`)
   }
 
+  _random01(n, reason = 'unspecified') {
+    const buf = Buffer.alloc(8)
+    new DataView(
+      buf.buffer,
+      buf.byteOffset,
+      buf.byteLength
+    ).setFloat64(0, 1 + n, true)
+    this._randBytes(buf, `_random01,${reason}`)
+  }
+
   _upto(num, i, reason = 'unspecified') {
     this._randUInt32(i, `_upto(${num}),${reason}`)
   }
@@ -37,8 +49,16 @@ class Arusab extends Basura {
     this._upto(ary.length, i, `_pick(${ary.length}),${reason}`)
   }
 
-  generate_boolean(b) {
-    this._upto(2, b, 'boolean')
+  _some(ary, sa, reason = 'unspecified') {
+    [...ary].forEach(c => this._upto(2, sa.includes(c), reason))
+  }
+
+  generate_boolean(b, depth = 0, reason = 'boolean') {
+    this._upto(2, b, reason)
+  }
+
+  generate_Boolean(b, depth = 0) {
+    this._upto(2, b, 'Boolean')
   }
 
   generate_integer(i) {
@@ -51,8 +71,20 @@ class Arusab extends Basura {
     this._randBytes(b, 'number')
   }
 
+  generate_Number(n, depth = 0) {
+    this.generate_number(n.valueOf())
+  }
+
   generate_Infinity(i) {
     this._pick(INFINITIES, i, 'Infinity')
+  }
+
+  generate_Buffer(b, depth = 0) {
+    if (depth > this.opts.depth) {
+      return
+    }
+    this._upto(this.opts.stringLength, b.length, 'Buffer length')
+    this._randBytes(Buffer.concat([b]), 'Buffer')
   }
 
   generate_string(txt, depth, reason = 'string') {
@@ -61,7 +93,7 @@ class Arusab extends Basura {
     this._pick(this.opts.scripts, script, `script,${reason}`)
     const points = scripts.get(script)
     const len = txt.length
-    this._upto(this.opts.strlen, len, `strlen,${reason}`)
+    this._upto(this.opts.stringLength, len, `stringLength,${reason}`)
     const codes = points.map(c => c.code)
     for (const char of [...txt]) {
       this._pick(
@@ -72,25 +104,114 @@ class Arusab extends Basura {
     }
   }
 
+  generate_String(txt, depth, reason = 'String') {
+    this.generate_string(txt.valueOf(), depth, reason)
+  }
+
+  generate_RegExp(re, depth, reason = 'RegExp') {
+    this.generate_string(re.source, depth, reason)
+    this._some('gimsuy', re.flags, reason)
+  }
+
+  generate_URL(url, depth = 0, reason = 'URL') {
+    this._pick([
+      'http:', 'https:', 'ftp:'
+    ], url.protocol, 'URL proto')
+    const m = url.hostname.match(/(.*)\.([^.]+)$/)
+    const [, tu, tld] = m
+
+    this._pick(tlds, tld, 'URL tld')
+
+    if (url.pathname !== '/') {
+      this._random01(0.05, 'URL pathname?')
+      this.generate_string(url.pathname.slice(1), depth + 1, 'URL pathname')
+    } else {
+      this._random01(0.9, 'URL pathname?')
+    }
+
+    if (url.search) {
+      this._random01(0.05, 'URL search?')
+      const params = [...url.searchParams]
+      this._upto(3, params.length, 'num search params')
+      for (const [k, v] of params) {
+        this.generate_string(k, depth + 1, 'URL search name')
+        this.generate_string(v, depth + 1, 'URL search value')
+      }
+    } else {
+      this._random01(0.9, 'URL search?')
+    }
+
+    if (url.hash) {
+      this._random01(0.05, 'URL hash?')
+      // hash has # in front
+      this.generate_string(url.hash.slice(1), depth + 1, 'URL hash')
+    } else {
+      this._random01(0.9, 'URL hash?')
+    }
+
+    let script = 'Latin'
+    for (const c of [...tld]) {
+      const char = scripts.chars.get(c.codePointAt(0))
+      if (char && char.script) {
+        ({script} = char)
+        break
+      }
+    }
+    const str = [...tu].map(c => c.codePointAt(0))
+    const points = scripts.get(script, true)
+    const lowercase = points.filter(
+      c => ['Ll', 'Lo', 'Lm'].includes(c.category)
+    ).map(c => c.code)
+
+    this._pick(lowercase, str.shift(), `copdepoint1,${reason}`)
+
+    const more = points.filter(
+      c => ['Ll', 'Lm', 'Lo', 'Nd', 'Mn', 'Mc'].includes(c.category)
+    ).map(c => c.code)
+
+    this._upto(this.opts.stringLength - 1, str.length, `stringLength,${reason}`)
+    for (const p of str) {
+      this._pick(more, p, `codepoint,${reason}`)
+    }
+  }
+
   generate_Array(a, depth = 0) {
     const len = a.length
-    this._upto(this.opts.arraylen, len, 'arraylen')
+    this._upto(this.opts.arrayLength, len, 'arrayLength')
     for (const i of a) {
       this.generate(i, depth + 1)
     }
   }
 
+  generate_TypedArray(ary, depth = 0) {
+    this._pick(
+      this.typedArrays,
+      ary.constructor,
+      'TypedArray type'
+    )
+    const sz = ary.BYTES_PER_ELEMENT || 1
+    if (depth <= this.opts.depth) {
+      this._upto(
+        this.opts.arrayLength,
+        ary.byteLength / sz,
+        `${ary.constructor.name} len`
+      )
+    }
+    const buf = Buffer.from(ary.buffer || ary, ary.byteOffset, ary.byteLength)
+    this._randBytes(buf, ary.constructor.name)
+  }
+
   generate_object(obj, depth = 0) {
     const keys = Object.keys(obj)
     const len = keys.length
-    this._upto(this.opts.arraylen, len, 'objectlen')
+    this._upto(this.opts.arrayLength, len, 'objectlen')
     for (let i = 0; i < len; i++) {
       this.generate_string(keys[i], depth + 1, 'key')
       this.generate(obj[keys[i]], depth + 1)
     }
   }
 
-  generate_bigint(n) {
+  generate_bigint(n, depth = 0) {
     let neg = false
     if (n < 0) {
       n *= -1n
@@ -101,9 +222,13 @@ class Arusab extends Basura {
       str = '0' + str
     }
     const buf = Buffer.from(str, 'hex')
-    this._upto(this.opts.strlen - 1, buf.length - 1, '_randUBigInt len,signed')
+    this._upto(this.opts.stringLength - 1, buf.length - 1, '_randUBigInt len,signed')
     this._randBytes(buf, '_randUBigInt,signed')
-    this.generate_boolean(neg)
+    this.generate_boolean(neg, depth, 'bigint sign')
+  }
+
+  generate_Date(d, depth = 0, today = null) {
+    this._randomGauss(today.getTime(), 315569520000, 'date')
   }
 
   generate_symbol(s, depth = 0) {
@@ -116,28 +241,51 @@ class Arusab extends Basura {
       return
     }
 
-    this._upto(this.opts.arraylen, m.size, 'maplen')
+    this._upto(this.opts.arrayLength, m.size, 'maplen')
     for (const [k, v] of m.entries()) {
       this.generate(k, depth + 1)
       this.generate(v, depth + 1)
     }
   }
 
+  generate_Proxy(p, depth = 0) {
+    if (depth > this.opts.depth) {
+      return
+    }
+    this.generate_object(p, depth)
+  }
+
   generate_Set(s, depth = 0) {
-    this._upto(this.opts.arraylen, s.size, 'setlen')
+    this._upto(this.opts.arrayLength, s.size, 'setlen')
     for (const o of s) {
       this.generate(o, depth + 1)
     }
   }
 
+  generate_function(f, depth = 0) {
+    if (depth > this.opts.depth) {
+      return
+    }
+    const fstr = f.toString()
+    const m = fstr.match(/'(.*)'/)
+    this.generate_string(m[1], depth, 'function')
+    const fin = util.inspect(f, {
+      colors: false,
+      depth: Infinity,
+      customInspect: false
+    })
+    this._pick(this.functionSpecies, fin, 'function species')
+  }
+
   generate(o, depth = 0) {
     let typ = typeof o
-    switch (typeof o) {
-      case 'undefined':
-      case 'boolean':
-      case 'string':
+    switch (typ) {
       case 'bigint':
+      case 'boolean':
+      case 'function':
+      case 'string':
       case 'symbol':
+      case 'undefined':
         break
       case 'number':
         if (isNaN(o)) {
@@ -151,8 +299,12 @@ class Arusab extends Basura {
       case 'object':
         if (!o) {
           typ = 'null'
+        } else if (this.typedArrays.includes(o.constructor)) {
+          typ = 'TypedArray'
         } else if (this[`generate_${o.constructor.name}`]) {
           typ = o.constructor.name
+        } else if (util.types.isProxy(o)) {
+          typ = 'Proxy'
         }
         break
       default:

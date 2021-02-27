@@ -11,6 +11,8 @@
     "doc": "jsdoc -c .jsdoc.conf",
     "coverage": "nyc -r lcov npm test",
     "test": "ava",
+    "predev": "npm run coverage",
+    "dev": "light-server -q -s. -w 'lib/*,test/**,data/* # npm run coverage' -o /coverage/lcov-report/index.html",
     "typecheck": "tsc --allowJs --checkJs --noEmit --target ES6 --moduleResolution node lib/*.js"
   },
   "author": "Joe Hildebrand <joe-github@cursive.net>",
@@ -28,7 +30,7 @@
   "main": "lib/index.js",
   "dependencies": {
     "commander": "^7.1.0",
-    "punycode": "^2.1.1",
+    "tlds": "^1.218.0",
     "unicode-trie": "^2.0.0"
   },
   "devDependencies": {
