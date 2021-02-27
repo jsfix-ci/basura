@@ -145,6 +145,10 @@ test('unspecified', t => {
 })
 
 test('functions', t => {
+  if (parseFloat(process.version.slice(1)) < 14) {
+    t.pass(`Skipping function tests on node ${process.version}`)
+    return
+  }
   const un = new Arusab({
     arrayLength: 1000
   })
