@@ -17,13 +17,13 @@
   },
   "author": "Joe Hildebrand <joe-github@cursive.net>",
   "description": "",
-  "homepage": "https://github.com/hildjj/garbaje",
+  "homepage": "https://github.com/hildjj/basura",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hildjj/garbaje.git"
+    "url": "git+https://github.com/hildjj/basura.git"
   },
   "bugs": {
-    "url": "https://github.com/hildjj/garbaje/issues"
+    "url": "https://github.com/hildjj/basura/issues"
   },
   "keywords": [],
   "license": "MPL-2.0",
