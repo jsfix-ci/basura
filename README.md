@@ -53,3 +53,5 @@ const b = new Basura(opts)
 console.log(b.generate()) // output: ???
 console.log(b.generate_Date()) // output: some date
 ```
+
+[![Tests](https://github.com/hildjj/basura/actions/workflows/node.js.yml/badge.svg)](https://github.com/hildjj/basura/actions/workflows/node.js.yml) [![Coverage Status](https://coveralls.io/repos/github/hildjj/basura/badge.svg?branch=main)](https://coveralls.io/github/hildjj/basura?branch=main)
