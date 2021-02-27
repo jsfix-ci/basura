@@ -16,7 +16,7 @@
     "typecheck": "tsc --allowJs --checkJs --noEmit --target ES6 --moduleResolution node lib/*.js"
   },
   "author": "Joe Hildebrand <joe-github@cursive.net>",
-  "description": "",
+  "description": "Generate random JavaScript",
   "homepage": "https://github.com/hildjj/basura",
   "repository": {
     "type": "git",
@@ -25,8 +25,16 @@
   "bugs": {
     "url": "https://github.com/hildjj/basura/issues"
   },
-  "keywords": [],
-  "license": "MPL-2.0",
+  "keywords": [
+    "test",
+    "fuzzing",
+    "random",
+    "string",
+    "URL",
+    "json",
+    "cbor"
+  ],
+  "license": "MIT",
   "main": "lib/index.js",
   "dependencies": {
     "commander": "^7.1.0",
