@@ -97,10 +97,23 @@ class Arusab extends Basura {
     const { script } = scripts.chars.get(cp)
     this._pick(this.opts.scripts, script, `script,${reason}`)
     const points = scripts.get(script)
-    const len = txt.length
+    let len = txt.length
+    const chars = [...txt] // splits on codepoint boundaries
+
+    // scan the string once, reducing the length by the number of initial
+    // combining characters
+    for (const char of chars) {
+      const info = points.find(ch => ch.code === char.codePointAt(0))
+      if (info && info.category === 'Mn') {
+        len--
+      } else {
+        break
+      }
+    }
+
     this._upto(this.opts.stringLength, len, `stringLength,${reason}`)
     const codes = points.map(c => c.code)
-    for (const char of [...txt]) {
+    for (const char of chars) {
       this._pick(
         codes,
         char.codePointAt(0),
@@ -115,7 +128,9 @@ class Arusab extends Basura {
 
   generate_RegExp(re, depth) {
     this.generate_string(re.source, depth, 'RegExp')
-    this._some('gimsuy', re.flags, 'RegExp flags')
+    if (!this.opts.cborSafe) {
+      this._some('gimsuy', re.flags, 'RegExp flags')
+    }
   }
 
   generate_URL(url, depth = 0) {

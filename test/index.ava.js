@@ -94,6 +94,8 @@ test('cbor/json safe', t => {
     cborSafe: true
   })
   t.falsy(g.typeNames['Boolean'])
+  t.is(g.generate_RegExp().flags, '')
+
   g = new Basura({
     jsonSafe: true
   })
@@ -250,4 +252,22 @@ test('inspect', t => {
   const b = new Basura({ output: true })
   const m = b.generate_Map()
   t.truthy(util.inspect(m, {depth: null}))
+})
+
+test('combining', t => {
+  // U+05BA is a combining character in the Hebrew script.  U+05E1 is not.
+  const un = new Arusab()
+  un.generate([
+    String.fromCodePoint(0x05BA, 0x05E1),
+    String.fromCodePoint(0x05BA, 0x05BA, 0x05E1),
+    String.fromCodePoint(0x05BA, 0x05BA)
+  ])
+  const g = new Basura({
+    randBytes: un.playback.bind(un)
+  })
+  t.deepEqual(g.generate(), [
+    String.fromCodePoint(0x05E1),
+    String.fromCodePoint(0x05E1),
+    ''
+  ])
 })
