@@ -271,3 +271,20 @@ test('combining', t => {
     ''
   ])
 })
+
+test('invalid regex', t => {
+  const un = new Arusab()
+  un.generate(/./) // valid
+  // copy the first half, minus the "pick regexp", deep-ish-ly
+  un.record = [...un.record, ...un.record.slice(1).map(a => [...a])]
+  // find the first "."
+  const rec = un.record.find(
+    ([b, d]) => d.match(/,codepoint,RegExp$/)
+  )
+  rec[0] = Buffer.concat([rec[0]]) // copy it, we weren't full deep above
+  rec[0][3] = 0x2b // change the . to a +, giving the bad regex /+/
+  const g = new Basura({
+    randBytes: un.playback.bind(un)
+  })
+  t.deepEqual(g.generate(), /./)
+})
