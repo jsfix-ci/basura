@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>functions - Documentation</title>
+    <title>Global - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,71 +29,313 @@
 
 <div id="main">
     
-    <h1 class="page-title">functions</h1>
+    <h1 class="page-title">Global</h1>
     
 
-    <section>
+    
+
+
+
+
+<section>
 
 <header>
+    
+        <h2>
+        
+        </h2>
+        
     
 </header>
 
 <article>
-    <p>Types of functions I know about, as differentiated by <code>util.inspect</code>, with the
-output of <code>f.toString()</code> in node 14 and higher:</p>
-<pre class="prettyprint source"><code>[Function (anonymous)]:
-  () => {} // '() => {}'
-  o = {}; o.f = () => {} // '() => {}'
-  (function() {}) // 'function() {}'
-[Function: anonymous]:
-  new Function(`return`) // 'function anonymous(\n) {\nreturn\n}'
-  new Function('a', 'b', 'c', `return`)
-    // 'function anonymous(a,b,c\n) {\nreturn\n}'
-  function anonymous(a,b,c\n) {\nreturn\n}
-    // 'function anonymous(a,b,c\n) {\nreturn\n}'
-[Function: f]:
-  f = () => {} // '() => {}'
-  f = function() {} // 'function() {}'
-  function f() {} // 'function f() {}'
-[AsyncFunction (anonymous)]:
-  async() => {}
-[AsyncFunction: anonymous]:
-  new (Object.getPrototypeOf(async function(){}).constructor)('return')
-    // 'async function anonymous(\n) {\nreturn\n}'
-  async function anonymous(\n) {\n} // 'async function anonymous(\n) {\n}'
-[AsyncFunction: f]:
-  f = async() => {} // 'async() => {}'
-  f = async function() {} // 'async function() {}'
-  async function f() {} // 'async function f() {}'
-[GeneratorFunction (anonymous)]:
-  o = {}; o.f = function*() {} // 'function*() {}'
-[GeneratorFunction: anonymous]:
-  new (Object.getPrototypeOf(function *(){}).constructor)('return')
-    // 'function* anonymous(\n) {\nreturn\n}'
-  function *anonymous(\n) {\n} // 'function *anonymous(\n) {\n}'
-[GeneratorFunction: f]:
-  f = function * () {} // 'function * () {}'
-  function* f() {} // 'function* f() {}'
-[AsyncGeneratorFunction (anonymous)]:
-  o = {}; o.f = async function*() {} // 'async function*() {}'
-[AsyncGeneratorFunction: anonymous]:
-  new (Object.getPrototypeOf(async function *(){}).constructor)('return')
-    // 'async function* anonymous(\n) {\nreturn\n}'
-  async function *anonymous(\n) {\nreturn\n}
-    // 'async function *anonymous(\n) {\nreturn\n}'
-[AsyncGeneratorFunction: f]:
-  f = async function*() {} // 'async function*() {}'
-  async function *f() {} // 'async function *f() {}'
-</code></pre>
-<p>Notes:</p>
-<ul>
-<li>for all of the async variants, whitespace is preserved around the '*'</li>
-<li>Node 10-12 generate completely different inspect strings.  I don't test
-generate_function on those versions, but it still works.</li>
-</ul>
+    <div class="container-overview">
+    
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Type Definitions</h3>
+
+        
+                
+<div class="section-members">
+<h4 class="name" id="CodePoint">CodePoint</h4>
+
+
+
+
+<div class="description">
+    Information about a single Unicode codepoint.
+</div>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>code</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>number</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">codepoint as a number</td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>property</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>"DISALLOWED"</code></span>
+|
+
+<span class="param-type"><code>"PVALID"</code></span>
+|
+
+<span class="param-type"><code>"CONTEXTO"</code></span>
+|
+
+<span class="param-type"><code>"CONTEXTJ"</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">IDNA
+  2008 derived property</td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>script</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Script name</td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>category</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">General category</td>
+        </tr>
+
+        
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="chars.js.html">chars.js</a>, <a href="chars.js.html#line29">line 29</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>object</code></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</div>
+
+            
+    
+
+    
 </article>
 
 </section>
+
+
+
 
 </div>
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>functions - Documentation</title>
+    <title>Chars - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,71 +29,303 @@
 
 <div id="main">
     
-    <h1 class="page-title">functions</h1>
+    <h1 class="page-title">Chars</h1>
     
 
-    <section>
+    
+
+
+
+
+<section>
 
 <header>
+    
+        <h2>
+        Chars
+        </h2>
+        
+            <div class="class-description">Information about all relevant Unicode codepoints.  Irrelevant codepoints
+include ones that are unassigned, half surrogates, etc.</div>
+        
     
 </header>
 
 <article>
-    <p>Types of functions I know about, as differentiated by <code>util.inspect</code>, with the
-output of <code>f.toString()</code> in node 14 and higher:</p>
-<pre class="prettyprint source"><code>[Function (anonymous)]:
-  () => {} // '() => {}'
-  o = {}; o.f = () => {} // '() => {}'
-  (function() {}) // 'function() {}'
-[Function: anonymous]:
-  new Function(`return`) // 'function anonymous(\n) {\nreturn\n}'
-  new Function('a', 'b', 'c', `return`)
-    // 'function anonymous(a,b,c\n) {\nreturn\n}'
-  function anonymous(a,b,c\n) {\nreturn\n}
-    // 'function anonymous(a,b,c\n) {\nreturn\n}'
-[Function: f]:
-  f = () => {} // '() => {}'
-  f = function() {} // 'function() {}'
-  function f() {} // 'function f() {}'
-[AsyncFunction (anonymous)]:
-  async() => {}
-[AsyncFunction: anonymous]:
-  new (Object.getPrototypeOf(async function(){}).constructor)('return')
-    // 'async function anonymous(\n) {\nreturn\n}'
-  async function anonymous(\n) {\n} // 'async function anonymous(\n) {\n}'
-[AsyncFunction: f]:
-  f = async() => {} // 'async() => {}'
-  f = async function() {} // 'async function() {}'
-  async function f() {} // 'async function f() {}'
-[GeneratorFunction (anonymous)]:
-  o = {}; o.f = function*() {} // 'function*() {}'
-[GeneratorFunction: anonymous]:
-  new (Object.getPrototypeOf(function *(){}).constructor)('return')
-    // 'function* anonymous(\n) {\nreturn\n}'
-  function *anonymous(\n) {\n} // 'function *anonymous(\n) {\n}'
-[GeneratorFunction: f]:
-  f = function * () {} // 'function * () {}'
-  function* f() {} // 'function* f() {}'
-[AsyncGeneratorFunction (anonymous)]:
-  o = {}; o.f = async function*() {} // 'async function*() {}'
-[AsyncGeneratorFunction: anonymous]:
-  new (Object.getPrototypeOf(async function *(){}).constructor)('return')
-    // 'async function* anonymous(\n) {\nreturn\n}'
-  async function *anonymous(\n) {\nreturn\n}
-    // 'async function *anonymous(\n) {\nreturn\n}'
-[AsyncGeneratorFunction: f]:
-  f = async function*() {} // 'async function*() {}'
-  async function *f() {} // 'async function *f() {}'
-</code></pre>
-<p>Notes:</p>
-<ul>
-<li>for all of the async variants, whitespace is preserved around the '*'</li>
-<li>Node 10-12 generate completely different inspect strings.  I don't test
-generate_function on those versions, but it still works.</li>
-</ul>
+    <div class="container-overview">
+    
+        
+<div class="section-method">
+
+    
+    <h2>Constructor</h2>
+    
+
+    <h4 class="name" id="Chars"><span class="type-signature"></span>new Chars<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Construct an instance.  This reads from `data/data.trie` and
+`data/data.json` synchronously.  Those files are created by
+`tools/create.js`.
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="chars.js.html">chars.js</a>, <a href="chars.js.html#line11">line 11</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="get"><span class="type-signature"></span>get<span class="signature">(code)</span><span class="type-signature"> &rarr; {<a href="global.html#CodePoint">CodePoint</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Get information about a single codepoint.
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="chars.js.html">chars.js</a>, <a href="chars.js.html#line45">line 45</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>code</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>number</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                the codepoint
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="section-returns">
+<h5>Returns:</h5>
+
+        
+
+<dl class="param-type">
+    <dt>
+        Type:
+    </dt>
+    <dd>
+        
+<span class="param-type"><code><a href="global.html#CodePoint">CodePoint</a></code></span>
+
+
+    </dd>
+</dl>
+
+
+    
+</div>
+
+
+
+</div>
+        
+    
+
+    
+
+    
 </article>
 
 </section>
+
+
+
 
 </div>
 

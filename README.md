@@ -36,6 +36,8 @@ Examples:
 
 ## API
 
+Full [API docs](https://hildjj.github.io/basura/) are available.
+
 ```js
 const Basura = require('basura')
 

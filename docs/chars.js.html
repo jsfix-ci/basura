@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>functions - Documentation</title>
+    <title>chars.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,71 +29,101 @@
 
 <div id="main">
     
-    <h1 class="page-title">functions</h1>
+    <h1 class="page-title">chars.js</h1>
     
 
+    
+
+
+
+    
     <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict'
 
-<header>
-    
-</header>
+const fs = require('fs')
+const path = require('path')
+const UnicodeTrie = require('unicode-trie')
 
-<article>
-    <p>Types of functions I know about, as differentiated by <code>util.inspect</code>, with the
-output of <code>f.toString()</code> in node 14 and higher:</p>
-<pre class="prettyprint source"><code>[Function (anonymous)]:
-  () => {} // '() => {}'
-  o = {}; o.f = () => {} // '() => {}'
-  (function() {}) // 'function() {}'
-[Function: anonymous]:
-  new Function(`return`) // 'function anonymous(\n) {\nreturn\n}'
-  new Function('a', 'b', 'c', `return`)
-    // 'function anonymous(a,b,c\n) {\nreturn\n}'
-  function anonymous(a,b,c\n) {\nreturn\n}
-    // 'function anonymous(a,b,c\n) {\nreturn\n}'
-[Function: f]:
-  f = () => {} // '() => {}'
-  f = function() {} // 'function() {}'
-  function f() {} // 'function f() {}'
-[AsyncFunction (anonymous)]:
-  async() => {}
-[AsyncFunction: anonymous]:
-  new (Object.getPrototypeOf(async function(){}).constructor)('return')
-    // 'async function anonymous(\n) {\nreturn\n}'
-  async function anonymous(\n) {\n} // 'async function anonymous(\n) {\n}'
-[AsyncFunction: f]:
-  f = async() => {} // 'async() => {}'
-  f = async function() {} // 'async function() {}'
-  async function f() {} // 'async function f() {}'
-[GeneratorFunction (anonymous)]:
-  o = {}; o.f = function*() {} // 'function*() {}'
-[GeneratorFunction: anonymous]:
-  new (Object.getPrototypeOf(function *(){}).constructor)('return')
-    // 'function* anonymous(\n) {\nreturn\n}'
-  function *anonymous(\n) {\n} // 'function *anonymous(\n) {\n}'
-[GeneratorFunction: f]:
-  f = function * () {} // 'function * () {}'
-  function* f() {} // 'function* f() {}'
-[AsyncGeneratorFunction (anonymous)]:
-  o = {}; o.f = async function*() {} // 'async function*() {}'
-[AsyncGeneratorFunction: anonymous]:
-  new (Object.getPrototypeOf(async function *(){}).constructor)('return')
-    // 'async function* anonymous(\n) {\nreturn\n}'
-  async function *anonymous(\n) {\nreturn\n}
-    // 'async function *anonymous(\n) {\nreturn\n}'
-[AsyncGeneratorFunction: f]:
-  f = async function*() {} // 'async function*() {}'
-  async function *f() {} // 'async function *f() {}'
+/**
+ * Information about all relevant Unicode codepoints.  Irrelevant codepoints
+ * include ones that are unassigned, half surrogates, etc.
+ */
+class Chars {
+  /**
+   * Construct an instance.  This reads from `data/data.trie` and
+   * `data/data.json` synchronously.  Those files are created by
+   * `tools/create.js`.
+   */
+  constructor() {
+    this.trie = new UnicodeTrie(fs.readFileSync(
+      path.join(__dirname, '..', 'data', 'data.trie')
+    ))
+    this.data = JSON.parse(fs.readFileSync(
+      path.join(__dirname, '..', 'data', 'data.json')
+    ))
+    this.propertyMask = (1 &lt;&lt; this.data.propertyBits) - 1
+    this.categoryMask = (1 &lt;&lt; this.data.categoryBits) - 1
+    this.scriptMask = (1 &lt;&lt; this.data.scriptBits) - 1
+  }
+
+  /**
+   * Information about a single Unicode codepoint.
+   *
+   * @typedef {object} CodePoint
+   * @property {number} code - codepoint as a number
+   * @property {"DISALLOWED"|"PVALID"|"CONTEXTO"|"CONTEXTJ"} property - IDNA
+   *   2008 derived property
+   * @property {string} script - Script name
+   * @property {string} category - General category
+   */
+  /**
+   * Get information about a single codepoint.
+   *
+   * @param {number} code - the codepoint
+   * @return {CodePoint}
+   */
+  get(code) {
+    const x = this.trie.get(code)
+    // Thanks to https://github.com/foliojs/unicode-properties for showing me
+    // how to do this.
+
+    // x can be invalid (32768), error (65536), or a 15 bit integer
+    // with the following fields or'd together:
+    // cccccSSSSSSSSpp
+    // categoryBits: 5
+    // scriptBits: 8
+    // propertyBits: 2
+
+    if (x === this.data.invalid) {
+      return null
+    }
+    if (x === this.data.error) {
+      throw new Error('Trie error')
+    }
+    const num = (x >> this.data.scriptShift) &amp; this.scriptMask
+    const s = this.data.scripts.find(props => props[1] === num)
+
+    return {
+      code,
+      property: this.data.properties[
+        (x >> this.data.propertyShift) &amp; this.propertyMask
+      ],
+      category: this.data.categories[
+        (x >> this.data.categoryShift) &amp; this.categoryMask
+      ],
+      script: s[0]
+    }
+  }
+}
+
+module.exports = Chars
 </code></pre>
-<p>Notes:</p>
-<ul>
-<li>for all of the async variants, whitespace is preserved around the '*'</li>
-<li>Node 10-12 generate completely different inspect strings.  I don't test
-generate_function on those versions, but it still works.</li>
-</ul>
-</article>
+        </article>
+    </section>
 
-</section>
+
+
 
 </div>
 
