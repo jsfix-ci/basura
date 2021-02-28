@@ -6,8 +6,6 @@ const scripts = Scripts.instance()
 const tlds = require('tlds')
 const util = require('util')
 
-const INFINITIES = [-Infinity, Infinity]
-
 /**
  * Un-generate garbage.  Inverse of Basura, for creating test cases.
  */
@@ -66,6 +64,17 @@ class Arusab extends Basura {
   }
 
   generate_number(n) {
+    const i = this.funNumbers.findIndex(o => Object.is(o, n))
+    if (i !== -1) {
+      this._random01(0.05, 'number')
+      this._upto(
+        this.funNumbers.length,
+        i,
+        `_pick(${this.funNumbers.length}),fun number`
+      )
+      return
+    }
+    this._random01(0.9, 'number')
     const b = Buffer.alloc(8)
     b.writeDoubleBE(n)
     this._randBytes(b, 'number')
@@ -73,10 +82,6 @@ class Arusab extends Basura {
 
   generate_Number(n, depth = 0) {
     this.generate_number(n.valueOf())
-  }
-
-  generate_Infinity(i) {
-    this._pick(INFINITIES, i, 'Infinity')
   }
 
   generate_Buffer(b, depth = 0) {
@@ -104,16 +109,16 @@ class Arusab extends Basura {
     }
   }
 
-  generate_String(txt, depth, reason = 'String') {
-    this.generate_string(txt.valueOf(), depth, reason)
+  generate_String(txt, depth) {
+    this.generate_string(txt.valueOf(), depth, 'String')
   }
 
-  generate_RegExp(re, depth, reason = 'RegExp') {
-    this.generate_string(re.source, depth, reason)
-    this._some('gimsuy', re.flags, reason)
+  generate_RegExp(re, depth) {
+    this.generate_string(re.source, depth, 'RegExp')
+    this._some('gimsuy', re.flags, 'RegExp flags')
   }
 
-  generate_URL(url, depth = 0, reason = 'URL') {
+  generate_URL(url, depth = 0) {
     this._pick([
       'http:', 'https:', 'ftp:'
     ], url.protocol, 'URL proto')
@@ -121,6 +126,13 @@ class Arusab extends Basura {
     const [, tu, tld] = m
 
     this._pick(tlds, tld, 'URL tld')
+
+    if (url.port !== '') {
+      this._random01(0.05, 'URL port?')
+      this._upto(65536, parseInt(url.port, 10), 'URL port')
+    } else {
+      this._random01(0.9, 'URL port?')
+    }
 
     if (url.pathname !== '/') {
       this._random01(0.05, 'URL pathname?')
@@ -163,15 +175,15 @@ class Arusab extends Basura {
       c => ['Ll', 'Lo', 'Lm'].includes(c.category)
     ).map(c => c.code)
 
-    this._pick(lowercase, str.shift(), `copdepoint1,${reason}`)
+    this._pick(lowercase, str.shift(), 'copdepoint1,URL')
 
     const more = points.filter(
       c => ['Ll', 'Lm', 'Lo', 'Nd', 'Mn', 'Mc'].includes(c.category)
     ).map(c => c.code)
 
-    this._upto(this.opts.stringLength - 1, str.length, `stringLength,${reason}`)
+    this._upto(this.opts.stringLength - 1, str.length, 'stringLength,URL')
     for (const p of str) {
-      this._pick(more, p, `codepoint,${reason}`)
+      this._pick(more, p, 'codepoint,URL')
     }
   }
 
@@ -222,7 +234,11 @@ class Arusab extends Basura {
       str = '0' + str
     }
     const buf = Buffer.from(str, 'hex')
-    this._upto(this.opts.stringLength - 1, buf.length - 1, '_randUBigInt len,signed')
+    this._upto(
+      this.opts.stringLength - 1,
+      buf.length - 1,
+      '_randUBigInt len,signed'
+    )
     this._randBytes(buf, '_randUBigInt,signed')
     this.generate_boolean(neg, depth, 'bigint sign')
   }
@@ -238,10 +254,10 @@ class Arusab extends Basura {
 
   generate_Map(m, depth = 0) {
     if (depth > this.opts.depth) {
-      return
+      m = 0
     }
 
-    this._upto(this.opts.arrayLength, m.size, 'maplen')
+    this._upto(this.opts.arrayLength, m.size, 'Map len')
     for (const [k, v] of m.entries()) {
       this.generate(k, depth + 1)
       this.generate(v, depth + 1)
@@ -288,11 +304,8 @@ class Arusab extends Basura {
       case 'undefined':
         break
       case 'number':
-        if (isNaN(o)) {
-          typ = 'NaN'
-        } else if (!Number.isFinite(o)) {
-          typ = 'Infinity'
-        } else if (Number.isInteger(o)) {
+        // 0 and -0 are "fun"
+        if ((o !== 0) && Number.isInteger(o)) {
           typ = 'integer'
         }
         break

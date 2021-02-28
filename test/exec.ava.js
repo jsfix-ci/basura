@@ -90,6 +90,7 @@ Generate a random JavaScript object
 Options:
   -V, --version                output the version number
   -a, --arrayLength <number>   Maximum array/object size (default: 10)
+  -b, --noBoxed                Do not generate boxed types, like String
   -c, --cborSafe               Do not generate types that break CBOR
   -d, --depth <number>         Maximum depth (default: 5)
   -j, --json                   Output JSON
@@ -124,8 +125,8 @@ test('json', async t => {
 })
 
 test('list types', async t => {
-  const txt = await exec('basura', { args: ['--listTypes']})
-  const b = new Basura()
+  const txt = await exec('basura', { args: ['-b', '--listTypes']})
+  const b = new Basura({ noBoxed: true })
   t.is(txt, b.typeNames.join('\n') + '\n')
 })
 

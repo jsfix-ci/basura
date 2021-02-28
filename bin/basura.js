@@ -22,6 +22,7 @@ const opts = commander.program
   .option(
     '-a, --arrayLength <number>', 'Maximum array/object size', myParseInt, 10
   )
+  .option('-b, --noBoxed', 'Do not generate boxed types, like String')
   .option('-c, --cborSafe', 'Do not generate types that break CBOR')
   .option('-d, --depth <number>', 'Maximum depth', myParseInt, 5)
   .option('-j, --json', 'Output JSON')

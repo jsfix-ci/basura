@@ -1,4 +1,5 @@
-Types of functions I know about, as differentiated by util.inspect, with the output of f.toString():
+Types of functions I know about, as differentiated by `util.inspect`, with the
+output of `f.toString()` in node 14 and higher:
 
 ```
 [Function (anonymous)]:
@@ -46,4 +47,7 @@ Types of functions I know about, as differentiated by util.inspect, with the out
   async function *f() {} // 'async function *f() {}'
 ```
 
-Note that for all of the async variants, whitespace is preserved around the '*'
+Notes:
+ * for all of the async variants, whitespace is preserved around the '*'
+ * Node 10-12 generate completely different inspect strings.  I don't test
+   generate_function on those versions, but it still works.

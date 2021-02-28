@@ -5,8 +5,10 @@ module.exports = [
   NaN,
   true,
   false,
+  Infinity,
   -Infinity,
   0,
+  -0,
   1,
   1.1,
   'foo', // Latin
@@ -56,6 +58,7 @@ module.exports = [
   new DataView(new ArrayBuffer(12)),
   new Proxy({a: 1, b: 2}, {}),
   new URL('https://example.com'),
+  new URL('https://example.com:4000'),
   new URL('https://example.com/'),
   new URL('https://example.com/foo'),
   new URL('https://example.com/?foo=bar&baz=boo'),
@@ -64,4 +67,5 @@ module.exports = [
   new URL('https://example.com/foo#blat'),
   new URL('https://example.com/bug?foo=bar&baz=boo'),
   new URL('https://example.com/bug?foo=bar&baz=boo#blat'),
+  new URL('https://example.com:0/bug?foo=bar&baz=boo#blat')
 ]

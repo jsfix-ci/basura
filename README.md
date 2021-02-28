@@ -19,6 +19,7 @@ Generate a random JavaScript object
 Options:
   -V, --version                output the version number
   -a, --arrayLength <number>   Maximum array/object size (default: 10)
+  -b, --noBoxed                Do not generate boxed types, like String
   -c, --cborSafe               Do not generate types that break CBOR
   -d, --depth <number>         Maximum depth (default: 5)
   -j, --json                   Output JSON
@@ -41,10 +42,11 @@ const Basura = require('basura')
 // The default options.  No need to pass anything in if you like these
 const opts = {
   arrayLength: 10,  // maximum size of arrays and objects
-  cborSafe: false,  // don't generate types that won't fit in CBOR
+  cborSafe: false,  // generate only CBOR-safe types?
   depth: 5,         // How deep to go
-  jsonSafe: false,  // don't generate types that won't fit in JSON
-  output: false,    // by default, generate human-readable output.  Otherwise valid JS
+  jsonSafe: false,  // generate only JSON-safe types?
+  noBoxed: false,   // ignore boxed types, like String?
+  output: false,    // add custom inspect functions that make output parseable JS?
   scripts: [],      // Array of script names to limit output to.  Defaults to all
   stringLength: 20, // Maximum string and Buffer length, in codepoints
   types: {},        // Extra types to generate.  Pass in `{Date: null}` to not generate Dates

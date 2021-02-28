@@ -6,9 +6,9 @@
   },
   "scripts": {
     "clean": "rm -rf coverage .nyc_output/ docs/api man/*",
-    "lint": "eslint lib/*.js bin/*.js test/*.js",
+    "lint": "eslint lib/*.js bin/*.js test/**.js",
     "data": "node tools/create.js",
-    "doc": "jsdoc -c .jsdoc.conf",
+    "docs": "jsdoc -c .jsdoc.conf",
     "coverage": "nyc -r lcov npm test",
     "test": "ava",
     "predev": "npm run coverage",
@@ -51,7 +51,7 @@
     "eslint-plugin-ava": "^11.0.0",
     "eslint-plugin-node": "^11.1.0",
     "jsdoc": "^3.6.6",
-    "jsdoc3-bootstrap": "^0.15.0",
+    "minami": "^1.2.3",
     "nyc": "^15.1.0"
   },
   "engines": {
