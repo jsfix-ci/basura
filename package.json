@@ -37,7 +37,7 @@
   "license": "MIT",
   "main": "lib/index.js",
   "dependencies": {
-    "commander": "^7.1.0",
+    "commander": "^8.3.0",
     "tlds": "^1.218.0",
     "unicode-trie": "^2.0.0"
   },

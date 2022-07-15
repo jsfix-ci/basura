@@ -10,12 +10,15 @@ const commander = require('commander')
 function myParseInt(value, dummyPrevious) {
   const v = parseInt(value, 10)
   if (isNaN(v)) {
-    throw new commander.InvalidOptionArgumentError('Not a number.')
+    throw new commander.InvalidArgumentError('Not a number.')
   }
   return v
 }
 
-const opts = commander.program
+const opts = /* TODO: JSFIX could not patch the breaking change:
+TypeScript declaration for .addHelpText() callback no longer allows result of undefined, now just string 
+Suggested fix: Only breaking if the 2nd argument 'text' of addHelpText() might return undefined: The type of addHelpText() has been changed. To accommodate this return an appropriate string instead. */
+commander.program
   .version(pkg.version)
   .usage('[options]')
   .description('Generate a random JavaScript object')
